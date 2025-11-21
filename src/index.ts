@@ -1,5 +1,6 @@
 import express from "express";
 
+import logger from "./config/loggerConfig.js";
 import serverConfig from "./config/serverConfig.js";
 import sampleQueueProducer from "./producers/sampleQueueProducer.js";
 import apiRouter from "./routes/index.js";
@@ -10,7 +11,9 @@ const app = express();
 app.use("/api", apiRouter);
 
 app.listen(serverConfig.PORT, () => {
-  console.log(`Server is running on port ${serverConfig.PORT}`);
+  logger.info(
+    `Server is running on port ${serverConfig.PORT} in ${process.env.NODE_ENV} mode.`,
+  );
 
   sampleWorker("SampleQueue");
 
