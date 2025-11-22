@@ -13,13 +13,13 @@ export default class SampleJob implements IJob {
     console.log("Handler of the job called");
     console.log(this.payload);
     if (job) {
-      console.log(job.id, job.name, job.data);
+      console.log(job.id);
     }
   };
   failed = (job?: Job): void => {
     console.log(`The Job failed to execute`);
     if (job) {
-      console.log(job.id, job.name, job.data);
+      console.log(job.id);
     }
   };
 }
