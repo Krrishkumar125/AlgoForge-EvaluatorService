@@ -1,13 +1,17 @@
+import bodyParser from "body-parser";
 import express from "express";
 
 import bullBoardAdapter from "./config/bullBoardConfig.js";
 import logger from "./config/loggerConfig.js";
 import serverConfig from "./config/serverConfig.js";
-import sampleQueueProducer from "./producers/sampleQueueProducer.js";
 import apiRouter from "./routes/index.js";
 import sampleWorker from "./workers/sampleWorker.js";
 
 const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.text());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/api", apiRouter);
 app.use("/ui", bullBoardAdapter.getRouter());
@@ -22,25 +26,4 @@ app.listen(serverConfig.PORT, () => {
   );
 
   sampleWorker("SampleQueue");
-
-  sampleQueueProducer(
-    "SampleJob",
-    {
-      name: "Krrish",
-      company: "NA",
-      position: "Backend Dev",
-      location: "Remote | BLR",
-    },
-    1,
-  );
-  sampleQueueProducer(
-    "SampleJob",
-    {
-      name: "Aman",
-      company: "NA",
-      position: "Frontend Dev",
-      location: "BLR",
-    },
-    1,
-  );
 });
