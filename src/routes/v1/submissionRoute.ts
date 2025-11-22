@@ -2,7 +2,7 @@ import express from "express";
 
 import { addSubmission } from "../../controllers/submissionController.js";
 import { createSubmissionZodSchema } from "../../dtos/createSubmissionDto.js";
-import { validate } from "../../validators/createSubmissionValidator.js";
+import { validate } from "../../validators/zodValidator.js";
 
 const submissionRouter = express.Router();
 
