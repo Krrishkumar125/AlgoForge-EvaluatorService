@@ -4,6 +4,7 @@ import express from "express";
 import bullBoardAdapter from "./config/bullBoardConfig.js";
 import logger from "./config/loggerConfig.js";
 import serverConfig from "./config/serverConfig.js";
+import runPython from "./containers/runPythonDocker.js";
 import apiRouter from "./routes/index.js";
 import sampleWorker from "./workers/sampleWorker.js";
 
@@ -26,4 +27,8 @@ app.listen(serverConfig.PORT, () => {
   );
 
   sampleWorker("SampleQueue");
+
+  const code = `print("Hello, World!")`;
+
+  runPython(code, "100");
 });
