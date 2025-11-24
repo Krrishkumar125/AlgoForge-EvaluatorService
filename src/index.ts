@@ -4,7 +4,8 @@ import express from "express";
 import bullBoardAdapter from "./config/bullBoardConfig.js";
 import logger from "./config/loggerConfig.js";
 import serverConfig from "./config/serverConfig.js";
-import runPython from "./containers/runPythonDocker.js";
+import runJava from "./containers/runJavaDocker.js";
+// import runPython from "./containers/runPythonDocker.js";
 import apiRouter from "./routes/index.js";
 import sampleWorker from "./workers/sampleWorker.js";
 
@@ -28,7 +29,29 @@ app.listen(serverConfig.PORT, () => {
 
   sampleWorker("SampleQueue");
 
-  const code = `print("Hello, World!")`;
+  //   const codePython = `x = input()
+  // y = input()
+  // print(int(x) + int(y))`;
 
-  runPython(code, "100");
+  const codeJava = `
+  import java.util.*;
+  public class Main{
+   public static void main(String[] args){
+      Scanner scn = new Scanner(System.in);
+      int x = scn.nextInt();
+      int y = scn.nextInt();
+      System.out.println("1st input value given by user: " + x);
+      System.out.println("2nd input value given by user: " + y);
+      for(int i = 0; i< x; i++){
+         System.out.println(i);
+      }
+   }
+  }
+  `;
+
+  const inputCase = `100
+200`;
+  // runPython(codePython, inputCase);
+
+  runJava(codeJava, inputCase);
 });
