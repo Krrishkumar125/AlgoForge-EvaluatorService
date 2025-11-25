@@ -4,9 +4,12 @@
 import { PYTHON_IMAGE } from "../utils/constants.js";
 import createContainer from "./containerFactory.js";
 import decodeDockerStream from "./dockerHelper.js";
+import pullImage from "./pullImage.js";
 
 async function runPython(code: string, inputTestCase: string) {
   const rawLogBuffer: Buffer[] = [];
+
+  await pullImage(PYTHON_IMAGE);
 
   const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.py && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | python3 test.py`;
 
