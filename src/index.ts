@@ -4,7 +4,6 @@ import express from "express";
 import bullBoardAdapter from "./config/bullBoardConfig.js";
 import logger from "./config/loggerConfig.js";
 import serverConfig from "./config/serverConfig.js";
-import submissionQueueProducer from "./producers/submissionQueueProducer.js";
 import apiRouter from "./routes/index.js";
 import { SUBMISSION_QUEUE } from "./utils/constants.js";
 import sampleWorker from "./workers/sampleWorker.js";
@@ -30,19 +29,4 @@ app.listen(serverConfig.PORT, () => {
 
   sampleWorker("SampleQueue");
   submissionWorker(SUBMISSION_QUEUE);
-
-  const code = `x = input()
-y = input()
-print(int(x) + int(y))`;
-
-  const inputCase = `10
-200`;
-
-  submissionQueueProducer({
-    "1234": {
-      language: "python",
-      code,
-      inputCase,
-    },
-  });
 });
