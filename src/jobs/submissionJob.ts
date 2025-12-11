@@ -1,8 +1,9 @@
 import type { Job } from "bullmq";
 
-import runPython from "../containers/runPythonDocker.js";
 import type { IJob } from "../types/bullMqJobDefinition.js";
+import type { ExecutionResponse } from "../types/codeExecutorStrategy.js";
 import type { SubmissionPayload } from "../types/submissionPayload.js";
+import createExecutor from "../utils/executorFactory.js";
 
 export default class SubmissionJob implements IJob {
   name: string;
@@ -28,10 +29,21 @@ export default class SubmissionJob implements IJob {
       }
       console.log(submission.language);
 
-      if (submission.language === "python") {
-        console.log("Handle Python specific failure");
-        const response = await runPython(submission.code, submission.inputCase);
-        console.log("Evaluated response is ", response);
+      const strategy = createExecutor(submission.language);
+      if (!strategy) {
+        console.log("No strategy found for language");
+        return;
+      }
+      const response: ExecutionResponse = await strategy.execute(
+        submission.code,
+        submission.inputCase,
+      );
+      if (response.status === "COMPLETED") {
+        console.log("Execution completed successfully");
+        console.log(response);
+      } else {
+        console.log("Execution failed with error");
+        console.log(response);
       }
     }
   };
