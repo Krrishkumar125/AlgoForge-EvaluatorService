@@ -1,5 +1,6 @@
 export type SubmissionPayload = {
   language: string;
   code: string;
-  inputCase: string;
+  inputTestCases: string;
+  outputTestCases: string;
 };

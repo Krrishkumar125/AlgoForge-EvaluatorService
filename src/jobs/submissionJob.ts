@@ -27,16 +27,21 @@ export default class SubmissionJob implements IJob {
         console.log("No submission found for key");
         return;
       }
-      console.log(submission.language);
 
-      const strategy = createExecutor(submission.language);
+      const codeLanguage = submission.language;
+      const code = submission.code;
+      const inputTestCase = submission.inputTestCases;
+      const outputTestCase = submission.outputTestCases;
+
+      const strategy = createExecutor(codeLanguage);
       if (!strategy) {
         console.log("No strategy found for language");
         return;
       }
       const response: ExecutionResponse = await strategy.execute(
-        submission.code,
-        submission.inputCase,
+        code,
+        inputTestCase,
+        outputTestCase,
       );
       if (response.status === "COMPLETED") {
         console.log("Execution completed successfully");

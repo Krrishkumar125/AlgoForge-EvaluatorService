@@ -14,7 +14,10 @@ class CppExecutor implements CodeExecutorStrategy {
   async execute(
     code: string,
     inputTestCase: string,
+    outputTestCase: string,
   ): Promise<ExecutionResponse> {
+    console.log(code, inputTestCase, outputTestCase);
+
     const rawLogBuffer: Buffer[] = [];
 
     await pullImage(CPP_IMAGE);
@@ -37,12 +40,6 @@ class CppExecutor implements CodeExecutorStrategy {
       follow: true, // whether the logs are streamed or returned as a string
     })) as Readable;
 
-    //attach events on the stream objects to start and stop reading
-
-    loggerStream.on("data", (chunk) => {
-      rawLogBuffer.push(chunk);
-    });
-
     try {
       const codeResponse = await this.fetchDecodedStream(
         loggerStream,
@@ -60,14 +57,23 @@ class CppExecutor implements CodeExecutorStrategy {
     rawLogBuffer: Buffer[],
   ): Promise<string> {
     return await new Promise((resolve, reject) => {
+      loggerStream.on("data", (chunk) => {
+        rawLogBuffer.push(chunk);
+      });
+
       loggerStream.on("end", () => {
         const completeBuffer = Buffer.concat(rawLogBuffer);
         const decodedStream = decodeDockerStream(completeBuffer);
+        console.log("Decoded stream:", decodedStream);
         if (decodedStream.stderr) {
           reject(decodedStream.stderr);
         } else {
           resolve(decodedStream.stdout);
         }
+      });
+
+      loggerStream.on("error", (err) => {
+        reject(err.message);
       });
     });
   }

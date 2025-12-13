@@ -6,11 +6,11 @@ import type CodeExecutorStrategy from "../types/codeExecutorStrategy.js";
 export default function createExecutor(
   codeLanguage: string,
 ): CodeExecutorStrategy | null {
-  if (codeLanguage === "python") {
+  if (codeLanguage.toLowerCase() === "python") {
     return new PythonExecutor();
-  } else if (codeLanguage === "cpp") {
+  } else if (codeLanguage.toLowerCase() === "cpp") {
     return new CppExecutor();
-  } else if (codeLanguage === "java") {
+  } else if (codeLanguage.toLowerCase() === "java") {
     return new JavaExecutor();
   } else {
     return null;
