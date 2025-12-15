@@ -1,13 +1,10 @@
-// import Docker from "dockerode";
-
-// import type { TestCases } from "../types/testCases.js";
 import type { Readable } from "stream";
 
 import type CodeExecutorStrategy from "../types/codeExecutorStrategy.js";
 import type { ExecutionResponse } from "../types/codeExecutorStrategy.js";
 import { PYTHON_IMAGE } from "../utils/constants.js";
+import fetchDecodedStream from "../utils/fetchDecodedStream.js";
 import createContainer from "./containerFactory.js";
-import decodeDockerStream from "./dockerHelper.js";
 import pullImage from "./pullImage.js";
 
 class PythonExecutor implements CodeExecutorStrategy {
@@ -16,15 +13,13 @@ class PythonExecutor implements CodeExecutorStrategy {
     inputTestCase: string,
     outputTestCase: string,
   ): Promise<ExecutionResponse> {
-    console.log(code, inputTestCase, outputTestCase);
-
     const rawLogBuffer: Buffer[] = [];
 
     await pullImage(PYTHON_IMAGE);
 
     const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.py && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | python3 test.py`;
 
-    console.log(runCommand);
+    console.log("The runCommand", runCommand);
     const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
       "/bin/sh",
       "-c",
@@ -48,9 +43,10 @@ class PythonExecutor implements CodeExecutorStrategy {
     });
 
     try {
-      const codeResponse = await this.fetchDecodedStream(
+      const codeResponse = await fetchDecodedStream(
         loggerStream,
         rawLogBuffer,
+        pythonDockerContainer,
       );
       if (codeResponse.trim() === outputTestCase.trim()) {
         return { output: codeResponse, status: "SUCCESS" };
@@ -58,26 +54,13 @@ class PythonExecutor implements CodeExecutorStrategy {
         return { output: codeResponse, status: "WRONG ANSWER" };
       }
     } catch (error) {
+      if (error === "Time Limit Exceeded") {
+        return { output: "", status: "Time Limit Exceeded" };
+      }
       return { output: error as string, status: "ERROR" };
     } finally {
       await pythonDockerContainer.remove();
     }
-  }
-  async fetchDecodedStream(
-    loggerStream: Readable,
-    rawLogBuffer: Buffer[],
-  ): Promise<string> {
-    return await new Promise((resolve, reject) => {
-      loggerStream.on("end", () => {
-        const completeBuffer = Buffer.concat(rawLogBuffer);
-        const decodedStream = decodeDockerStream(completeBuffer);
-        if (decodedStream.stderr) {
-          reject(decodedStream.stderr);
-        } else {
-          resolve(decodedStream.stdout);
-        }
-      });
-    });
   }
 }
 

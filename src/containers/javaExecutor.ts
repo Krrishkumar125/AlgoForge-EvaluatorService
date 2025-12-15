@@ -1,13 +1,10 @@
-// import Docker from "dockerode";
-
-// import type { TestCases } from "../types/testCases.js";
 import type { Readable } from "stream";
 
 import type { ExecutionResponse } from "../types/codeExecutorStrategy.js";
 import type CodeExecutorStrategy from "../types/codeExecutorStrategy.js";
 import { JAVA_IMAGE } from "../utils/constants.js";
+import fetchDecodedStream from "../utils/fetchDecodedStream.js";
 import createContainer from "./containerFactory.js";
-import decodeDockerStream from "./dockerHelper.js";
 import pullImage from "./pullImage.js";
 
 class JavaExecutor implements CodeExecutorStrategy {
@@ -16,15 +13,13 @@ class JavaExecutor implements CodeExecutorStrategy {
     inputTestCase: string,
     outputTestCase: string,
   ): Promise<ExecutionResponse> {
-    console.log(code, inputTestCase, outputTestCase);
-
     const rawLogBuffer: Buffer[] = [];
 
     await pullImage(JAVA_IMAGE);
 
     const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > Main.java && javac Main.java && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | java Main`;
 
-    console.log(runCommand);
+    console.log("The runCommand", runCommand);
     const javaDockerContainer = await createContainer(JAVA_IMAGE, [
       "/bin/sh",
       "-c",
@@ -47,37 +42,24 @@ class JavaExecutor implements CodeExecutorStrategy {
     });
 
     try {
-      const codeResponse = await this.fetchDecodedStream(
+      const codeResponse = await fetchDecodedStream(
         loggerStream,
         rawLogBuffer,
+        javaDockerContainer,
       );
-
       if (codeResponse.trim() === outputTestCase.trim()) {
         return { output: codeResponse, status: "SUCCESS" };
       } else {
         return { output: codeResponse, status: "WRONG ANSWER" };
       }
     } catch (error) {
+      if (error === "Time Limit Exceeded") {
+        return { output: "", status: "Time Limit Exceeded" };
+      }
       return { output: error as string, status: "ERROR" };
     } finally {
       await javaDockerContainer.remove();
     }
-  }
-  async fetchDecodedStream(
-    loggerStream: Readable,
-    rawLogBuffer: Buffer[],
-  ): Promise<string> {
-    return await new Promise((resolve, reject) => {
-      loggerStream.on("end", () => {
-        const completeBuffer = Buffer.concat(rawLogBuffer);
-        const decodedStream = decodeDockerStream(completeBuffer);
-        if (decodedStream.stderr) {
-          reject(decodedStream.stderr);
-        } else {
-          resolve(decodedStream.stdout);
-        }
-      });
-    });
   }
 }
 

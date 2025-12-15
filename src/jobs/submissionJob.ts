@@ -43,7 +43,11 @@ export default class SubmissionJob implements IJob {
         inputTestCase,
         outputTestCase,
       );
-      if (response.status === "COMPLETED") {
+      if (
+        response.status === "SUCCESS" ||
+        response.status === "WRONG ANSWER" ||
+        response.status === "Time Limit Exceeded"
+      ) {
         console.log("Execution completed successfully");
         console.log(response);
       } else {
