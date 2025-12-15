@@ -51,7 +51,12 @@ class JavaExecutor implements CodeExecutorStrategy {
         loggerStream,
         rawLogBuffer,
       );
-      return { output: codeResponse, status: "COMPLETED" };
+
+      if (codeResponse.trim() === outputTestCase.trim()) {
+        return { output: codeResponse, status: "SUCCESS" };
+      } else {
+        return { output: codeResponse, status: "WRONG ANSWER" };
+      }
     } catch (error) {
       return { output: error as string, status: "ERROR" };
     } finally {
