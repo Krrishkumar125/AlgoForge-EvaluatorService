@@ -1,5 +1,6 @@
 import type { Job } from "bullmq";
 
+import evaluationQueueProducer from "../producers/evaluationQueueProducer.js";
 import type { IJob } from "../types/bullMqJobDefinition.js";
 import type { ExecutionResponse } from "../types/codeExecutorStrategy.js";
 import type { SubmissionPayload } from "../types/submissionPayload.js";
@@ -32,6 +33,8 @@ export default class SubmissionJob implements IJob {
       const code = submission.code;
       const inputTestCase = submission.inputTestCases;
       const outputTestCase = submission.outputTestCases;
+      const userId = submission.userId;
+      const submissionId = submission.submissionId;
 
       const strategy = createExecutor(codeLanguage);
       if (!strategy) {
@@ -43,6 +46,9 @@ export default class SubmissionJob implements IJob {
         inputTestCase,
         outputTestCase,
       );
+
+      evaluationQueueProducer({ response, userId, submissionId });
+
       if (
         response.status === "SUCCESS" ||
         response.status === "WRONG ANSWER" ||
